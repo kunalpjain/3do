@@ -1,0 +1,23 @@
+# Swift / SPM build artifacts
+.build/
+*.o
+*.d
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode / Swift Package Manager
+.swiftpm/
+*.xcuserstate
+xcuserdata/
+DerivedData/
+
+# App bundle produced by `make app`
+*.app
+
+# Editors
+.idea/
+*.sublime-project
+*.sublime-workspace
