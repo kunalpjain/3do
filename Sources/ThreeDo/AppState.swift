@@ -497,13 +497,12 @@ class AppState: ObservableObject {
 
     func renameWorkspace(id: UUID, name: String) {
         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        guard var ws = workspaces.first(where: { $0.id == id }) else { return }
+        ws.name = name
+        ws.updatedAt = Date()
+        let snap = ws
         Task {
-            try? await db.pool.write { db in
-                try db.execute(
-                    sql: "UPDATE workspaces SET name = ?, updated_at = ? WHERE id = ?",
-                    arguments: [name, Date(), id.uuidString]
-                )
-            }
+            try? await db.pool.write { db in try snap.update(db) }
             let updated = (try? await db.pool.read { db in
                 try Workspace.filter(Column("deleted_at") == nil)
                     .order(Column("position")).fetchAll(db)
@@ -514,13 +513,12 @@ class AppState: ObservableObject {
 
     func deleteWorkspace(id: UUID) {
         guard workspaces.count > 1 else { return }   // keep at least one
+        guard var ws = workspaces.first(where: { $0.id == id }) else { return }
+        ws.deletedAt = Date()
+        ws.updatedAt = Date()
+        let snap = ws
         Task {
-            try? await db.pool.write { db in
-                try db.execute(
-                    sql: "UPDATE workspaces SET deleted_at = ?, updated_at = ? WHERE id = ?",
-                    arguments: [Date(), Date(), id.uuidString]
-                )
-            }
+            try? await db.pool.write { db in try snap.update(db) }
             let updated = (try? await db.pool.read { db in
                 try Workspace.filter(Column("deleted_at") == nil)
                     .order(Column("position")).fetchAll(db)
